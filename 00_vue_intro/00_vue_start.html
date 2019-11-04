@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <!-- Vue 도움되는 콘솔 경고를 포함한 개발 버전 -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <title>Vue Start</title>
+</head>
+<body>
+  <div id="app">
+    {{ message }} - {{ count }}
+    <button v-on:click="plus">plus</button>
+    <button v-on:click="minus">minus</button>
+  </div>
+
+  <script>
+    // vue code
+    const app = new Vue({
+      el: '#app', // CSS selector
+      data: {
+        // app.message -> console
+        // app.$data.message -> console
+        message: 'Hello, Vue!',
+        count: 0,
+      },
+      methods: {
+        // arrow functions 사용 x -> 반드시 function keyword
+        // vue.js:634 [Vue warn]: Method "message" has already been defined as a data property. (found in <Root>)
+        // message: function(){
+        //   this.count++
+        // },
+        plus: function(){
+          // function 키워드로 함수 정의를 해야 this 가 Vue 인스턴스를 가르킨다.
+          this.count++
+        },
+        minus: function(){
+          this.count--
+        }
+      }
+    })
+  </script>
+</body>
+</html>
