@@ -16,12 +16,23 @@
 </head>
 <body>
   <div id="app">
-    <h1 v-bind:style="{color: activeColor, fontSize: fontSize+'px'}">TODO APP</h1>
+      <h1 v-bind:style="{ color: activeColor, fontSize: fontSize + 'px' }">TODO APP</h1>
+
+      <select v-model="showMode">
+        <option value="all">all</option>
+        <option value="notCompleted">not completed</option>
+        <option value="completed">completed</option>
+      </select>
     <ul>
       <!-- 완료하지 않은 목록만 보여주기 -->
-      <!-- v-if="!todo.completed" -->
-      <li v-for="todo in todos" v-on:click="toggleTodo(todo)">
-        <input type="checkbox" v-model="todo.completed"> {{ todo.content }}
+      <!-- v-if="!todo.completed" v-on:click="toggleTodo(todo) -->
+      <li
+        v-for="todo in todoByShowMode"
+        v-bind:class="{ completed: todo.completed }" 
+        v-bind:key="todo.id"
+      >
+        <input type="checkbox" v-model="todo.completed">
+        {{ todo.content }}
       </li>
       <!-- <li v-else @click="toggleTodo(todo)">{{ todo.content }} - Complete!</li> -->
     </ul>
@@ -29,49 +40,103 @@
     <footer>
       <button @click="clearCompleted">clear</button>
     </footer>
+
   </div>
   <script>
+    const STORAGE_KEY = 'vue-todos'
+    const todoStorage = {
+      fetch: function() {
+        // String => Array
+        return JSON.parse(localStorage.getItem(STORAGE_KEY))
+      },
+      save: function(todos) {
+        // Array => String
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(todos))
+      }
+    }
     const app = new Vue({
       el: '#app',
       data: {
         todos: [
           {
+            id: 1,
             content: '저녁 메뉴 고민하기',
             completed: true,
           },
           {
+            id: 2,
             content: '사다리타기',
             completed: false,
           },
           {
+            id: 3,
             content: '약속의 2시 낮잠자기',
             completed: false,
           },
           {
+            id: 4,
             content: '야자하기',
             completed: false,
           },
         ],
         newTodo: '',
+        // CSS
         activeColor: 'red',
         fontSize: 30,
+        // Show mode
+        showMode: 'all',
       },
       methods: {
-        toggleTodo: function(todo){
-          todo.completed = !todo.completed
-        },
-        addTodo: function(){
-          this.todos.push({
-            content: this.newTodo,
-            completed: false,
-          })
-          this.newTodo = ''
+        // toggleTodo: function(todo){
+        //   todo.completed = !todo.completed
+        //   this.todoStorage.save(this.todos)
+        // },
+        addTodo: function() {
+          if (this.newTodo) {
+            this.todos.push({
+              id: new Date().getTime(),
+              content: this.newTodo,
+              completed: false,
+            })
+            this.newTodo = ''
+          }
         },
         clearCompleted: function(){
           // completed 가 true 인 모든 todo 를 리스트에서 삭제한다.
           this.todos = this.todos.filter(todo=>!todo.completed)
-        }
+        },
       },
+      // method 는 화면이 바뀔 때마다 변화 -> computed : 불필요한 연산 x 최초값 저장(메모리 측면 유리)
+      computed: {
+        todoByShowMode: function() {
+          // showMode 에 따라 todolist 를 새롭게 반환한다.
+          if (this.showMode === 'notCompleted') {
+            return this.todos.filter(todo => {
+              return !todo.completed
+            })
+          } else if (this.showMode === 'completed') {
+            return this.todos.filter(todo => {
+              return todo.completed
+            })
+          } else { // === 'all'
+            return this.todos
+          }
+        },
+      },
+      created(){
+        // View instance 가 생성되면 실행하는 함수
+        this.todos = todoStorage.fetch()
+      },
+      watch: {
+        // 특정 데이터가 바뀔 때마다 실행하는 함수를 정의하는 곳
+        todos: { // todos 라는 데이터가 바뀔때마다
+          handler: function(){
+          // todos 라는 데이터가 바뀔 때마다 실행하는 함수
+          todoStorage.save(this.todos) 
+          },
+          deep: true, // object 의 nested item 도 감시할지 유무
+        }
+      }
     })
   </script>
 </body>
